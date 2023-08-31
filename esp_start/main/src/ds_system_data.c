@@ -136,16 +136,17 @@ TP_ACTION_E get_tp_action()
 
 void check_tp_action()
 {
-    g_system_data.tp_action_manage.status = 0;
+    g_system_data.tp_action_manage.status = 0; // 重置屏幕触摸状态
     TP_ACTION_MANAGE_T *m_manage = &g_system_data.tp_action_manage;
-    // if(abs(m_action_manage->tp_start_x - m_action_manage->tp_stop_x) > ){
 
-    // }
-    // ESP_LOGI(TAG,"timecount %d",m_manage->tp_interval_timecount);
+    ESP_LOGI(TAG,"timecount %d",m_manage->tp_interval_timecount);
     ESP_LOGI(TAG, "start %d %d stop %d %d", m_manage->tp_start_x, m_manage->tp_start_y, m_manage->tp_stop_x, m_manage->tp_stop_y);
-    if (m_manage->tp_stop_x == 0 && m_manage->tp_stop_y == 0 && m_manage->tp_start_x != 0 && m_manage->tp_start_y != 0)
+    if ((m_manage->tp_stop_x + m_manage->tp_stop_y + m_manage->tp_start_x + m_manage->tp_start_y) == 0)
+        return;
+    
+    if (m_manage->tp_stop_x == 0 && m_manage->tp_stop_y == 0 && m_manage->tp_start_x != 0 && m_manage->tp_start_y != 0) // 短暂触摸，小于10ms
     {
-        ESP_LOGI(TAG, "action TP_ACTION_SHORT");
+        ESP_LOGI(TAG, "action TP_ACTION_SHORT 0");
         g_system_data.tp_action_manage.tp_action = TP_ACTION_SHORT;
         ds_ui_page_manage_send_event(g_system_data.tp_action_manage.tp_action, g_system_data.tp_action_manage.tp_start_x, g_system_data.tp_action_manage.tp_start_y);
         return;
@@ -189,23 +190,16 @@ void check_tp_action()
         }
     }
 
-    // 300ms
-    if (m_manage->tp_interval_timecount < 30)
+    // 500ms
+    if (m_manage->tp_interval_timecount < 50)
     {
-        if ((m_manage->tp_stop_x + m_manage->tp_stop_y + m_manage->tp_start_x + m_manage->tp_start_y) == 0)
-            return;
-        ESP_LOGI(TAG, "action TP_ACTION_SHORT");
+        ESP_LOGI(TAG, "action TP_ACTION_SHORT 1");
         g_system_data.tp_action_manage.tp_action = TP_ACTION_SHORT;
         ds_ui_page_manage_send_event(g_system_data.tp_action_manage.tp_action, g_system_data.tp_action_manage.tp_start_x, g_system_data.tp_action_manage.tp_start_y);
         return;
     }
-    // 1.5s
-    if (m_manage->tp_interval_timecount > 150)
+    else 
     {
-        if (m_manage->tp_start_x != 0 && m_manage->tp_start_y != 0 && m_manage->tp_stop_x != 0 && m_manage->tp_stop_y != 0)
-        {
-            return;
-        }
         ESP_LOGI(TAG, "action TP_ACTION_LONG");
         g_system_data.tp_action_manage.tp_action = TP_ACTION_LONG;
         ds_ui_page_manage_send_event(g_system_data.tp_action_manage.tp_action, g_system_data.tp_action_manage.tp_start_x, g_system_data.tp_action_manage.tp_start_y);
@@ -243,7 +237,7 @@ void count_tp_action_manage_time()
 
 void reset_tp_action_manage()
 {
-    memset(&g_system_data.tp_action_manage, 0, sizeof(TP_ACTION_MANAGE_T));
+    memset(&g_system_data.tp_action_manage, 0, sizeof(TP_ACTION_MANAGE_T)); // 初始化触摸相关变量
     // set check on
     g_system_data.tp_action_manage.status = 1;
 }
@@ -278,6 +272,10 @@ void update_system_time(uint8_t hour, uint8_t minute, uint8_t second)
 
 void update_system_time_second()
 {
+    // 更新番茄时间计数
+    g_system_data.tomato_update_count++;
+    
+    // 更新系统时间
     if (g_system_data.second >= 59)
     {
         g_system_data.second = 0;

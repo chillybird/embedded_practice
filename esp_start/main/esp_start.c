@@ -22,7 +22,6 @@
 
 // ui
 #include "ds_ui_page_manage.h"
-#include "ds_ui_timepage.h"
 
 // wifi
 #include "ds_wifi_ap_sta.h"
@@ -30,7 +29,11 @@
 
 #include "ds_http_request.h"
 
+// font
+#include "ds_font.h"
+
 #define BUTTON_GPIO_NUM_DEFAULT  4
+#define TWDT_TIMEOUT_S          3
 
 void ds_system_init(void)
 {
@@ -180,27 +183,31 @@ void app_main()
     UART_Init();
 
     /*timer*/
-    ds_timer_init();
+    ds_timer_init(); // 创建定时器，每秒更新系统时间
 
     /* TP */
-    // init_ft6336(); 
+    init_ft6336(); 
+    // ds_test_tp();
 
     /* screen */
     init_screen_interface();
 
     /* ui */
-    ds_ui_timepage_init();
+    ds_ui_page_manage_init();
     
     //进入低功耗模式
     // sleep_mode_init();
 
-    ds_test_adc(); // 测试adc
+    // ds_test_adc(); // 测试adc
 
-    // TP_POSITION_T position;
+    // 测试字体库
+    test_ds_font();
+
     for (;;)
     {
-        // get_ft6336_touch_sta(&position);
-        vTaskDelay(pdMS_TO_TICKS(10));
+        esp_task_wdt_reset(); 
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
+
+    esp_task_wdt_delete(NULL);
 }

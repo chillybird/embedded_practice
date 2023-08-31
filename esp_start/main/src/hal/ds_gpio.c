@@ -11,17 +11,20 @@
 #include "ds_ft6336.h"
 #include "ds_system_data.h"
 
+#include "esp_log.h"
+
+static const char *TAG = "gpio";
+
 /**
  * GPIO status:
  * GPIO5: output
  * GPIO4:  input, pulled up, interrupt from rising edge 
  */
 
-#define GPIO_OUTPUT_IO_0    5
-#define GPIO_OUTPUT_PIN_SEL  ((1ULL<<GPIO_OUTPUT_IO_0))
-#define GPIO_INPUT_IO_0     4
-// #define GPIO_INPUT_IO_0     34
-#define GPIO_INPUT_PIN_SEL  ((1ULL<<GPIO_INPUT_IO_0))
+#define GPIO_TP_RST    5 // 重置芯片IO
+#define GPIO_TP_RST_PIN_SEL  ((1ULL<<GPIO_TP_RST))
+#define GPIO_TP_INT     4 // 触摸中断IO
+#define GPIO_TP_INT_PIN_SEL  ((1ULL<<GPIO_TP_INT))
 #define ESP_INTR_FLAG_DEFAULT 0
 
 //屏幕片选 0-有效
@@ -40,19 +43,19 @@
 
 static xQueueHandle gpio_evt_queue = NULL;
 
-static void IRAM_ATTR gpio_isr_handler(void* arg)
+static void IRAM_ATTR gpio_isr_handler(void* arg) // TP触摸中断
 {
     uint32_t gpio_num = (uint32_t) arg;
     xQueueSendFromISR(gpio_evt_queue, &gpio_num, NULL);
 }
 
-static void gpio_task_example(void* arg)
+static void gpio_task(void* arg)
 {
     uint32_t io_num;
     for(;;) {
         if(xQueueReceive(gpio_evt_queue, &io_num, portMAX_DELAY)) {
             printf("GPIO[%d] intr, val: %d\n", io_num, gpio_get_level(io_num));
-            if(io_num == GPIO_INPUT_IO_0){
+            if(io_num == GPIO_TP_INT){
                 set_tp_wackup_timeleft(600);
                 if(gpio_get_level(io_num) == 0){
                     //TODO START COUNT 
@@ -74,7 +77,7 @@ void ds_touch_gpio_init(){
     //set as output mode
     io_conf.mode = GPIO_MODE_OUTPUT;
     //bit mask of the pins that you want to set,e.g.GPIO18/19
-    io_conf.pin_bit_mask = GPIO_OUTPUT_PIN_SEL;
+    io_conf.pin_bit_mask = GPIO_TP_RST_PIN_SEL;
     //disable pull-down mode
     io_conf.pull_down_en = 0;
     //disable pull-up mode
@@ -83,9 +86,9 @@ void ds_touch_gpio_init(){
     gpio_config(&io_conf);
 
     //GPIO interrupt type : both rising and falling edge
-    io_conf.intr_type = GPIO_INTR_ANYEDGE;
+    io_conf.intr_type = GPIO_INTR_ANYEDGE; // 同时检测上升沿和下降沿电平，对应开始触摸和结束触摸
     //bit mask of the pins, use GPIO4/5 here
-    io_conf.pin_bit_mask = GPIO_INPUT_PIN_SEL;
+    io_conf.pin_bit_mask = GPIO_TP_INT_PIN_SEL;
     //set as input mode    
     io_conf.mode = GPIO_MODE_INPUT;
     //enable pull-up mode
@@ -93,28 +96,29 @@ void ds_touch_gpio_init(){
     gpio_config(&io_conf);
 
     //change gpio intrrupt type for one pin
-    // gpio_set_intr_type(GPIO_INPUT_IO_0, GPIO_INTR_NEGEDGE);
+    // gpio_set_intr_type(GPIO_TP_INT, GPIO_INTR_NEGEDGE);
 
     if(has_init_isr == false){
         //create a queue to handle gpio event from isr
         gpio_evt_queue = xQueueCreate(10, sizeof(uint32_t));
         //start gpio task
-        xTaskCreate(gpio_task_example, "gpio_task_example", 2048, NULL, 10, NULL);
+        xTaskCreate(gpio_task, "gpio_task", 2048, NULL, 10, NULL);
 
         //install gpio isr service
         gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT);
         //hook isr handler for specific gpio pin
-        gpio_isr_handler_add(GPIO_INPUT_IO_0, gpio_isr_handler, (void*) GPIO_INPUT_IO_0);
+        gpio_isr_handler_add(GPIO_TP_INT, gpio_isr_handler, (void*) GPIO_TP_INT);
+
+        has_init_isr = true;
     }
-    has_init_isr = true;
 }
 
 void ds_touch_gpio_isr_remove(){
-    gpio_isr_handler_remove(GPIO_INPUT_IO_0);
+    gpio_isr_handler_remove(GPIO_TP_INT);
 }
 
 void ds_touch_gpio_isr_add(){
-    gpio_isr_handler_add(GPIO_INPUT_IO_0, gpio_isr_handler, (void*) GPIO_INPUT_IO_0);
+    gpio_isr_handler_add(GPIO_TP_INT, gpio_isr_handler, (void*) GPIO_TP_INT);
 }
 
 void ds_screen_gpio_init(){
@@ -180,6 +184,6 @@ int ds_gpio_get_screen_busy(){
 }
 
 void ds_gpio_set_touch_rst(uint32_t level){
-    gpio_set_level(GPIO_OUTPUT_IO_0, level);
+    gpio_set_level(GPIO_TP_RST, level);
 }
 

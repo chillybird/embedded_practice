@@ -1,18 +1,7 @@
-#include <stdio.h>
-#include <string.h>
-
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-
-#include "ds_data_num.h"
-#include "ds_screen.h"
-
-#include "esp_log.h"
-
-#include "ds_system_data.h"
 #include "ds_ui_timepage.h"
+#include "ds_data_num.h"
 
-static const char* TAG = "time_page";
+static const char* TAG = "timepage";
 
 typedef struct 
 {
@@ -24,6 +13,14 @@ typedef struct
 TIME_PAGE_T g_time_page;
 
 TaskHandle_t xTaskTimepageHandle = NULL;
+
+void ds_ui_regist_time_page(PAGE_HANDLE_T* handle)
+{
+    handle->page_init = ds_ui_timepage_init;
+    handle->page_destory = ds_ui_timepage_destory;
+    handle->call_event = ds_ui_time_page_callEvent;
+    handle->page_type = PAGE_TYPE_TIME;
+}
 
 // 更新时间函数
 void ds_ui_timepage_updatetime(void)
@@ -74,6 +71,12 @@ static void vtimeUpdateTask(void* arg)
     }
 }
 
+void ds_ui_time_page_callEvent(UI_EVENT_T event)
+{
+    printf("time page call event\n");
+    ds_ui_page_manage_send_action(PAGE_TYPE_MEMU); // 返回时钟页面
+}
+
 void ds_ui_timepage_init(void)
 {
     // 初始化时间显示页面
@@ -90,10 +93,10 @@ void ds_ui_timepage_init(void)
     xTaskCreatePinnedToCore(vtimeUpdateTask, "update time task", 4096, NULL, 10, &xTaskTimepageHandle, tskNO_AFFINITY);
 }
 
-void ds_ui_timepage_deinit(void)
+void ds_ui_timepage_destory(void)
 {
     if (xTaskTimepageHandle)
         vTaskDelete(xTaskTimepageHandle);
     else
-        ESP_LOGI(TAG,"Timepage is not created.\n");
+        ESP_LOGI(TAG,"Timepage is not created!\n");
 }

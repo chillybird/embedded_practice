@@ -46,7 +46,7 @@ typedef enum{
 //触摸动作管理
 typedef struct{
     int tp_interval_timecount;
-    uint8_t status;
+    uint8_t status; // 1 表示触摸开始， 0 表示触摸未开始
     uint16_t tp_start_x;
 	uint16_t tp_start_y;
     uint16_t tp_stop_x;
@@ -83,6 +83,8 @@ typedef struct
     uint8_t minute;
     uint8_t second;
 
+    // 番茄时钟
+    uint8_t tomato_update_count; // 时钟应该更新的次数
     uint8_t tomato_left_time;
 
 }SYSTRM_DATA_T;

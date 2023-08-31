@@ -32,36 +32,36 @@ static void beep_task(void *arg)
     {
         if (xQueueReceive(beep_queue, &evt, portMAX_DELAY))
         {
-            if (evt == BEEP_SHORT_100MS)
-            {
-                ds_beep_start();
-                vTaskDelay(100 / portTICK_PERIOD_MS);
-                ds_beep_stop();
-            }
-            else if (evt == BEEP_SHORT_500MS)
-            {
-                ds_beep_start();
-                vTaskDelay(100 / portTICK_PERIOD_MS);
-                ds_beep_stop();
-                vTaskDelay(100 / portTICK_PERIOD_MS);
-                ds_beep_start();
-                vTaskDelay(100 / portTICK_PERIOD_MS);
-                ds_beep_stop();
-            }
-            else if (evt == BEEP_LONG)
-            {
-                ds_beep_start();
-                vTaskDelay(100 / portTICK_PERIOD_MS);
-                ds_beep_stop();
-                vTaskDelay(100 / portTICK_PERIOD_MS);
-                ds_beep_start();
-                vTaskDelay(100 / portTICK_PERIOD_MS);
-                ds_beep_stop();
-                vTaskDelay(100 / portTICK_PERIOD_MS);
-                ds_beep_start();
-                vTaskDelay(100 / portTICK_PERIOD_MS);
-                ds_beep_stop();
-            }
+            // if (evt == BEEP_SHORT_100MS)
+            // {
+            //     ds_beep_start();
+            //     vTaskDelay(100 / portTICK_PERIOD_MS);
+            //     ds_beep_stop();
+            // }
+            // else if (evt == BEEP_SHORT_500MS)
+            // {
+            //     ds_beep_start();
+            //     vTaskDelay(100 / portTICK_PERIOD_MS);
+            //     ds_beep_stop();
+            //     vTaskDelay(100 / portTICK_PERIOD_MS);
+            //     ds_beep_start();
+            //     vTaskDelay(100 / portTICK_PERIOD_MS);
+            //     ds_beep_stop();
+            // }
+            // else if (evt == BEEP_LONG)
+            // {
+            //     ds_beep_start();
+            //     vTaskDelay(100 / portTICK_PERIOD_MS);
+            //     ds_beep_stop();
+            //     vTaskDelay(100 / portTICK_PERIOD_MS);
+            //     ds_beep_start();
+            //     vTaskDelay(100 / portTICK_PERIOD_MS);
+            //     ds_beep_stop();
+            //     vTaskDelay(100 / portTICK_PERIOD_MS);
+            //     ds_beep_start();
+            //     vTaskDelay(100 / portTICK_PERIOD_MS);
+            //     ds_beep_stop();
+            // }
         }
     }
 }

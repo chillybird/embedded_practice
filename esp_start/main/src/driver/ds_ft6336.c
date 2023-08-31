@@ -15,7 +15,9 @@ const uint16_t FT6236_TPX_TBL[5] = {FT_TP1_REG, FT_TP2_REG, FT_TP3_REG, FT_TP4_R
 TouchPoint_T gTPS;
 
 // 扫描触摸屏寄存器状态、数据
-static void scan_ft6336()
+static void
+
+scan_ft6336()
 {
     uint8_t i = 0;
     uint8_t sta = 0;
@@ -64,51 +66,42 @@ static void count_position_ft6336(TP_POSITION_T *position)
     // printf("------count_position_ft6336 %d------\n",gTPS.touch_count);
     switch (gTPS.touch_count)
     {
-    case 1:
-        // printf("x=%d y=%d\n",gTPS.x[0],gTPS.y[0]);
-        if ((gTPS.x[0] != 0) && (gTPS.y[0] != 0) && (gTPS.x[0] < 200) && (gTPS.y[0] < 200)) // 软件滤掉无效操作
-        {
-            // To 152x152
-            gTPS.x[0] = gTPS.x[0] * 152 / 200;
-            gTPS.y[0] = gTPS.y[0] * 152 / 200;
-            position->status = 1;
-            position->x = gTPS.x[0];
-            position->y = gTPS.y[0];
-            /******调试使用****/
-            printf("触摸点个数=%d\r\n", gTPS.touch_count); // FT6336U最多支持两点触控
-            printf("x0:%d,y0:%d\r\n", gTPS.x[0], gTPS.y[0]);
+        case 1:
+            // printf("x=%d y=%d\n",gTPS.x[0],gTPS.y[0]);
+            if ((gTPS.x[0] != 0) && (gTPS.y[0] != 0) && (gTPS.x[0] < 200) && (gTPS.y[0] < 200)) // 软件滤掉无效操作
+            {
+                position->status = 1;
+                position->x = gTPS.x[0];
+                position->y = gTPS.y[0];
+                /******调试使用****/
+                // printf("触摸点个数=%d\r\n", gTPS.touch_count); // FT6336U最多支持两点触控
+                // printf("x0:%d,y0:%d\r\n", gTPS.x[0], gTPS.y[0]);
 
-            touch_pos_t pos_packet = {
-                .size = 2,
-                .pos = {gTPS.x[0], gTPS.y[0]}
-            };
-            send_uart_touch_pos(pos_packet);
+                // touch_pos_t pos_packet = {
+                //     .size = 2,
+                //     .pos = {gTPS.x[0], gTPS.y[0]}};
 
-            return;
-        }
-        break;
-    case 2:
-        if ((gTPS.x[0] != 0) && (gTPS.y[0] != 0) && (gTPS.x[1] != 0) && (gTPS.y[1] != 0) && (gTPS.x[0] < 200) && (gTPS.y[0] < 200) && (gTPS.x[1] < 200) && (gTPS.y[1] < 200)) // 软件滤掉无效操作
-        {
-            // To 152x152
-            gTPS.x[0] = gTPS.x[0] * 152 / 200;
-            gTPS.y[0] = gTPS.y[0] * 152 / 200;
-            gTPS.x[1] = gTPS.x[1] * 152 / 200;
-            gTPS.y[1] = gTPS.y[1] * 152 / 200;
-            /******调试使用****/
-            printf("触摸点个数：:%d\r\n", gTPS.touch_count); // FT6336U最多支持两点触控
-            printf("x0:%d,y0:%d\r\n", gTPS.x[0], gTPS.y[0]);
-            printf("x1:%d,y1:%d\r\n", gTPS.x[1], gTPS.y[1]);
+                // send_uart_touch_pos(pos_packet);
 
-            double_touch_pos_t pos_packet = {
-                .size = 4,
-                .double_pos = {gTPS.x[0], gTPS.y[0], gTPS.x[1], gTPS.y[1]}
-            };
-            send_uart_double_touch_pos(pos_packet);
-        }
-        break;
-    default:
-        break;
+                return;
+            }
+            break;
+        case 2:
+            if ((gTPS.x[0] != 0) && (gTPS.y[0] != 0) && (gTPS.x[1] != 0) && (gTPS.y[1] != 0) && (gTPS.x[0] < 200) && (gTPS.y[0] < 200) && (gTPS.x[1] < 200) && (gTPS.y[1] < 200)) // 软件滤掉无效操作
+            {
+                /******调试使用****/
+                // printf("触摸点个数：:%d\r\n", gTPS.touch_count); // FT6336U最多支持两点触控
+                // printf("x0:%d,y0:%d\r\n", gTPS.x[0], gTPS.y[0]);
+                // printf("x1:%d,y1:%d\r\n", gTPS.x[1], gTPS.y[1]);
+
+                // double_touch_pos_t pos_packet = {
+                //     .size = 4,
+                //     .double_pos = {gTPS.x[0], gTPS.y[0], gTPS.x[1], gTPS.y[1]}};
+                // send_uart_double_touch_pos(pos_packet);
+            }
+            break;
+        default:
+            break;
     }
     for (int i = 0; i < 2; i++)
     {
@@ -120,21 +113,11 @@ static void count_position_ft6336(TP_POSITION_T *position)
     position->y = gTPS.y[0];
 }
 
-// int count = 0;
 // 触摸中断处理
 void get_ft6336_touch_sta(TP_POSITION_T *position)
 {
     scan_ft6336();
     count_position_ft6336(position);
-    // if(touch_status == 1){
-    // 	touch_status = 0;
-    // 	count ++;
-    // 	if(count%2){
-    //     	ds_screen_test();
-    // 	}else{
-    //     	ds_screen_test2();
-    // 	}
-    // }
 }
 
 // 初始化

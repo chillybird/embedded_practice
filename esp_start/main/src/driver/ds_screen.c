@@ -14,6 +14,10 @@
 
 #include "ds_data_num.h"
 
+void EPD_Update(void);
+void EPD_Update_Fast(void);
+void EPD_Part_Update(void);
+
 // Detection busy
 static void lcd_chkstatus(void)
 {
@@ -52,18 +56,14 @@ void refresh(void)
 	lcd_chkstatus();
 }
 
-// 图片全刷-全白函数
-static void ds_screen_display_white(void)
+void ds_screen_full_display(void pic_display(void))
 {
-	unsigned int i, k;
-	spi_send_cmd(0x24); // write RAM for black(0)/white (1)
-	for (k = 0; k < 250; k++)
-	{
-		for (i = 0; i < 25; i++)
-		{
-			spi_send_data(0xff);
-		}
-	}
+	printf("ds_screen_full_display\n");
+	pic_display();
+	printf("phase 2_1\n");
+	EPD_Update();
+	printf("phase 2_2\n");
+	EPD_DeepSleep();
 }
 
 // 图片全刷-数据函数
@@ -203,8 +203,6 @@ void EPD_HW_Init_Fast(void)
 // The x axis is reduced by one byte, and the y axis is reduced by one pixel.
 void EPD_SetRAMValue_BaseMap(const unsigned char *datas)
 {
-	printf("EPD_SetRAMValue_BaseMap");
-
 	unsigned int i;
 	if (datas == NULL)
 	{

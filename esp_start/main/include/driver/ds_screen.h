@@ -3,9 +3,8 @@
 
 
 void init_screen_interface(void);
-void ds_screen_init();
-void ds_screen_clean_white();
 
+void ds_screen_full_display(void pic_display(void));
 void ds_screen_full_display_data(const uint8_t *data);
 
 void test_SSD1681(void);

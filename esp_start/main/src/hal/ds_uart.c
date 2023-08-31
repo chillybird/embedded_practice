@@ -3,6 +3,7 @@
 #include "freertos/task.h"
 #include "esp_log.h"
 #include "ds_uart.h"
+#include "ds_ui_messpage.h"
 
 static const char *TAG = "board_uart";
 
@@ -50,9 +51,11 @@ void uartEventTask(void *pvParameters)
             // We'd better handler data event fast, there would be much more data events than
             // other types of events. If we take too much time on data event, the queue might be full.
             case UART_DATA:
-                // ESP_LOGI(TAG, "[UART DATA]: %d", event.size);
-                uart_read_bytes(UART_NUM_0, pTempBuf, event.size, portMAX_DELAY);
+                ESP_LOGI(TAG, "[UART DATA]: %d", event.size);
+                // uart_read_bytes(UART_NUM_0, pTempBuf, event.size, portMAX_DELAY); // event.size
+                uart_read_bytes(UART_NUM_0, pTempBuf, BUF_SIZE * 2, pdMS_TO_TICKS(100)); 
                 uart_write_bytes(UART_NUM_0, (const char *)pTempBuf, event.size);
+                ds_ui_show_mess((char*)pTempBuf);
                 break;
 
             // Event of HW FIFO overflow detected

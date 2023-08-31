@@ -23,7 +23,14 @@ idf_component_register(SRCS "esp_start.c"
 
                             # ui
                             "src/ui/ds_ui_timepage.c"
+                            "src/ui/ds_ui_settingpage.c"
+                            "src/ui/ds_ui_messpage.c"
+                            "src/ui/ds_ui_tomatopage.c"
                             "src/ui/ds_ui_page_manage.c"
+
+                            # draw
+                            "src/draw/ds_font.c"
+                            "src/draw/ds_paint.c"
 
                             # net
                             "src/net/ds_wifi_ap.c"
@@ -44,6 +51,7 @@ idf_component_register(SRCS "esp_start.c"
                                 "./include/data"
                                 "./include/ui"
                                 "./include/net"
+                                "./include/draw"
 
                     EMBED_FILES "html/favicon.ico"
                                 "html/setting.html")

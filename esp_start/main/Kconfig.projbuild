@@ -118,6 +118,15 @@ menu "DesktopScreen Configuration"
             help
                 Desktop Screen test in Kconfig.
     endmenu
+
+    # u8g2
+    menu "u8g2"
+        config u8g2_ENABLE
+            bool "Enable u8g2"
+            default "y"
+            help
+                Whether enable u8g2 component.
+    endmenu
 endmenu
 
 
